@@ -97,7 +97,7 @@ publishing {
             pom {
                 name.set("JaCoCo Coverage Inspector Gradle Plugin")
                 description.set("Gradle plugin for inspecting and parsing JaCoCo coverage reports")
-                url.set("https://github.com/mpecan/gradle-plugin-jacoco-agent")
+                url.set("https://github.com/mpecan/jacoco-coverage-inspector")
 
                 licenses {
                     license {
@@ -115,9 +115,9 @@ publishing {
                 }
 
                 scm {
-                    connection.set("scm:git:git://github.com/mpecan/gradle-plugin-jacoco-agent.git")
-                    developerConnection.set("scm:git:ssh://github.com:mpecan/gradle-plugin-jacoco-agent.git")
-                    url.set("https://github.com/mpecan/gradle-plugin-jacoco-agent")
+                    connection.set("scm:git:git://github.com/mpecan/jacoco-coverage-inspector.git")
+                    developerConnection.set("scm:git:ssh://github.com:mpecan/jacoco-coverage-inspector.git")
+                    url.set("https://github.com/mpecan/jacoco-coverage-inspector")
                 }
             }
         }
