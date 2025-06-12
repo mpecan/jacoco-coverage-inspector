@@ -1,5 +1,7 @@
 package io.github.mpecan.jacoco.formatter
 
+import io.github.mpecan.jacoco.aggregator.AggregatedPackageCoverage
+import io.github.mpecan.jacoco.aggregator.AggregatedProjectCoverage
 import io.github.mpecan.jacoco.model.*
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -11,18 +13,21 @@ class TableFormatterTest {
         return CoverageCounter(type, missed, covered)
     }
     
-    private fun createTestProject(): ProjectCoverageData {
-        val counters = mapOf(
-            CoverageType.INSTRUCTION to createTestCounter(CoverageType.INSTRUCTION, 100, 20),
-            CoverageType.BRANCH to createTestCounter(CoverageType.BRANCH, 80, 40),
-            CoverageType.LINE to createTestCounter(CoverageType.LINE, 90, 10),
-            CoverageType.METHOD to createTestCounter(CoverageType.METHOD, 15, 5),
-            CoverageType.CLASS to createTestCounter(CoverageType.CLASS, 8, 2)
-        )
-        
-        return ProjectCoverageData("TestProject", counters)
-    }
-    
+    private fun createTestProject(): ProjectCoverageData = ProjectCoverageData("TestProject", createCounters())
+
+    private fun createAggregatedProject(): AggregatedProjectCoverage = AggregatedProjectCoverage("AggregatedProject", createCounters(),1,1,1)
+
+    private fun createAggregatedPackage(): List<AggregatedPackageCoverage> =
+        listOf(AggregatedPackageCoverage("AggregatedPackage", createCounters(), 1,1))
+
+    private fun createCounters(): Map<CoverageType, CoverageCounter> = mapOf(
+        CoverageType.INSTRUCTION to createTestCounter(CoverageType.INSTRUCTION, 100, 20),
+        CoverageType.BRANCH to createTestCounter(CoverageType.BRANCH, 80, 40),
+        CoverageType.LINE to createTestCounter(CoverageType.LINE, 90, 10),
+        CoverageType.METHOD to createTestCounter(CoverageType.METHOD, 15, 5),
+        CoverageType.CLASS to createTestCounter(CoverageType.CLASS, 8, 2)
+    )
+
     @Test
     fun `should format project coverage without colors`() {
         val formatter = TableFormatter(colorOutput = false)
@@ -49,7 +54,25 @@ class TableFormatterTest {
         assertContains(output, "\u001B[")
         assertContains(output, "PROJECT COVERAGE SUMMARY")
     }
-    
+
+    @Test
+    fun `should format aggregated project coverage with colors`() {
+        val formatter = TableFormatter(colorOutput = true)
+        val project = createAggregatedProject()
+        val output = formatter.format(project)
+        assertContains(output, "\u001B[")
+        assertContains(output, "PROJECT COVERAGE SUMMARY")
+    }
+
+    @Test
+    fun `should format aggregated package coverage with colors`() {
+        val formatter = TableFormatter(colorOutput = true)
+        val project = createAggregatedPackage()
+        val output = formatter.format(project)
+        assertContains(output, "\u001B[")
+        assertContains(output, "PACKAGE COVERAGE")
+    }
+
     @Test
     fun `should format empty list`() {
         val formatter = TableFormatter(colorOutput = false)

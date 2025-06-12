@@ -1,5 +1,6 @@
 package io.github.mpecan.jacoco.formatter
 
+import io.github.mpecan.jacoco.aggregator.*
 import io.github.mpecan.jacoco.model.*
 
 /**
@@ -26,6 +27,7 @@ class TableFormatter(
     override fun format(data: Any): String {
         return when (data) {
             is ProjectCoverageData -> formatProjectCoverage(data)
+            is AggregatedProjectCoverage -> formatAggregatedProjectCoverage(data)
             is List<*> -> formatList(data)
             else -> data.toString()
         }
@@ -47,6 +49,28 @@ class TableFormatter(
         return sb.toString()
     }
     
+    private fun formatAggregatedProjectCoverage(project: AggregatedProjectCoverage): String {
+        val sb = StringBuilder()
+        
+        sb.appendLine()
+        sb.appendLine(bold("PROJECT COVERAGE SUMMARY"))
+        sb.appendLine("=" * 60)
+        sb.appendLine()
+        sb.appendLine("Project: ${project.projectName}")
+        sb.appendLine()
+        
+        // Summary statistics
+        sb.appendLine(String.format(java.util.Locale.US, "%-20s: %d", "Total Packages", project.packageCount))
+        sb.appendLine(String.format(java.util.Locale.US, "%-20s: %d", "Total Classes", project.classCount))
+        sb.appendLine(String.format(java.util.Locale.US, "%-20s: %d", "Total Methods", project.methodCount))
+        sb.appendLine()
+        
+        // Format coverage counters
+        sb.append(formatCounters(project.totalCounters))
+        
+        return sb.toString()
+    }
+    
     private fun formatList(list: List<*>): String {
         if (list.isEmpty()) {
             return "\nNo items match the specified filters.\n"
@@ -54,6 +78,7 @@ class TableFormatter(
         
         return when (val first = list.first()) {
             is PackageCoverageData -> formatPackageList(list.filterIsInstance<PackageCoverageData>())
+            is AggregatedPackageCoverage -> formatAggregatedPackageList(list.filterIsInstance<AggregatedPackageCoverage>())
             is ClassCoverageData -> formatClassList(list.filterIsInstance<ClassCoverageData>())
             else -> list.joinToString("\n")
         }
@@ -81,6 +106,41 @@ class TableFormatter(
             
             sb.appendLine(String.format(java.util.Locale.US, "%-40s %10s %10s %10s %10s",
                 truncate(pkg.packageName, 40),
+                className,
+                methodName,
+                lineName,
+                branchName
+            ))
+        }
+        
+        sb.appendLine()
+        return sb.toString()
+    }
+    
+    private fun formatAggregatedPackageList(packages: List<AggregatedPackageCoverage>): String {
+        val sb = StringBuilder()
+        
+        sb.appendLine()
+        sb.appendLine(bold("PACKAGE COVERAGE"))
+        sb.appendLine("=" * 100)
+        sb.appendLine()
+        
+        // Header
+        sb.appendLine(String.format(java.util.Locale.US, "%-40s %8s %8s %10s %10s %10s %10s", 
+            "Package", "Classes", "Methods", "Class", "Method", "Line", "Branch"))
+        sb.appendLine("-" * 100)
+        
+        // Data rows
+        for (pkg in packages) {
+            val className = formatPercentage(pkg.aggregatedCounters[CoverageType.CLASS])
+            val methodName = formatPercentage(pkg.aggregatedCounters[CoverageType.METHOD])
+            val lineName = formatPercentage(pkg.aggregatedCounters[CoverageType.LINE])
+            val branchName = formatPercentage(pkg.aggregatedCounters[CoverageType.BRANCH])
+            
+            sb.appendLine(String.format(java.util.Locale.US, "%-40s %8d %8d %10s %10s %10s %10s",
+                truncate(pkg.packageName, 40),
+                pkg.classCount,
+                pkg.methodCount,
                 className,
                 methodName,
                 lineName,
@@ -133,7 +193,7 @@ class TableFormatter(
             "Type", "Covered", "Missed", "Total", "Coverage"))
         sb.appendLine("-" * 60)
         
-        for (type in CoverageType.values()) {
+        for (type in CoverageType.entries) {
             val counter = counters[type]
             if (counter != null) {
                 val coverageStr = formatPercentage(counter)

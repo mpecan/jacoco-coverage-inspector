@@ -24,4 +24,23 @@ data class CoverageCounter(
     fun isCoveredRatioAtMost(threshold: Double): Boolean {
         return ratio <= threshold
     }
+    
+    companion object {
+        /**
+         * Aggregates multiple coverage counters of the same type
+         */
+        fun aggregate(counters: List<CoverageCounter>): CoverageCounter {
+            require(counters.isNotEmpty()) { "Cannot aggregate empty list of counters" }
+            
+            val type = counters.first().type
+            require(counters.all { it.type == type }) { 
+                "All counters must be of the same type for aggregation" 
+            }
+            
+            val totalMissed = counters.sumOf { it.missed }
+            val totalCovered = counters.sumOf { it.covered }
+            
+            return CoverageCounter(type, totalMissed, totalCovered)
+        }
+    }
 }

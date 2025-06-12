@@ -90,7 +90,7 @@ class JacocoInspectorExtensionTest {
         val extension = JacocoInspectorExtension()
         
         // Test each output format
-        OutputFormat.values().forEach { format ->
+        OutputFormat.entries.forEach { format ->
             extension.defaultFormat = format
             assertEquals(format, extension.defaultFormat, "Should support $format output format")
         }

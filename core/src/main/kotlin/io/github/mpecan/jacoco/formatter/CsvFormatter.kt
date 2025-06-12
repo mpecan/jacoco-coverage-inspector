@@ -1,5 +1,6 @@
 package io.github.mpecan.jacoco.formatter
 
+import io.github.mpecan.jacoco.aggregator.*
 import io.github.mpecan.jacoco.model.*
 
 /**
@@ -10,6 +11,7 @@ class CsvFormatter : CoverageFormatter {
     override fun format(data: Any): String {
         return when (data) {
             is ProjectCoverageData -> formatProjectCoverage(data)
+            is AggregatedProjectCoverage -> formatAggregatedProjectCoverage(data)
             is List<*> -> formatList(data)
             else -> escapeCsv(data.toString())
         }
@@ -39,6 +41,18 @@ class CsvFormatter : CoverageFormatter {
         return sb.toString()
     }
     
+    private fun formatAggregatedProjectCoverage(project: AggregatedProjectCoverage): String {
+        val sb = StringBuilder()
+        
+        // Header with additional metadata
+        sb.appendLine("Type,Name,PackageCount,ClassCount,MethodCount,ClassCovered,ClassMissed,ClassTotal,ClassPercentage,MethodCovered,MethodMissed,MethodTotal,MethodPercentage,LineCovered,LineMissed,LineTotal,LinePercentage,BranchCovered,BranchMissed,BranchTotal,BranchPercentage,InstructionCovered,InstructionMissed,InstructionTotal,InstructionPercentage,ComplexityCovered,ComplexityMissed,ComplexityTotal,ComplexityPercentage")
+        
+        // Project data
+        sb.appendLine(formatAggregatedProjectRow(project))
+        
+        return sb.toString()
+    }
+    
     private fun formatList(list: List<*>): String {
         if (list.isEmpty()) {
             return ""
@@ -46,6 +60,7 @@ class CsvFormatter : CoverageFormatter {
         
         return when (val first = list.first()) {
             is PackageCoverageData -> formatPackageList(list.filterIsInstance<PackageCoverageData>())
+            is AggregatedPackageCoverage -> formatAggregatedPackageList(list.filterIsInstance<AggregatedPackageCoverage>())
             is ClassCoverageData -> formatClassList(list.filterIsInstance<ClassCoverageData>())
             else -> list.joinToString("\n") { escapeCsv(it.toString()) }
         }
@@ -113,6 +128,30 @@ class CsvFormatter : CoverageFormatter {
                 "0,0,0,0.00"
             }
         }
+    }
+    
+    private fun formatAggregatedPackageList(packages: List<AggregatedPackageCoverage>): String {
+        val sb = StringBuilder()
+        
+        // Header with metadata
+        sb.appendLine("Type,Name,ClassCount,MethodCount,ClassCovered,ClassMissed,ClassTotal,ClassPercentage,MethodCovered,MethodMissed,MethodTotal,MethodPercentage,LineCovered,LineMissed,LineTotal,LinePercentage,BranchCovered,BranchMissed,BranchTotal,BranchPercentage,InstructionCovered,InstructionMissed,InstructionTotal,InstructionPercentage,ComplexityCovered,ComplexityMissed,ComplexityTotal,ComplexityPercentage")
+        
+        // Data rows
+        for (pkg in packages) {
+            sb.appendLine(formatAggregatedPackageRow(pkg))
+        }
+        
+        return sb.toString()
+    }
+    
+    private fun formatAggregatedProjectRow(project: AggregatedProjectCoverage): String {
+        val counters = project.totalCounters
+        return "PROJECT,${escapeCsv(project.projectName)},${project.packageCount},${project.classCount},${project.methodCount},${formatAllCounters(counters)}"
+    }
+    
+    private fun formatAggregatedPackageRow(pkg: AggregatedPackageCoverage): String {
+        val counters = pkg.aggregatedCounters
+        return "PACKAGE,${escapeCsv(pkg.packageName)},${pkg.classCount},${pkg.methodCount},${formatAllCounters(counters)}"
     }
     
     private fun escapeCsv(str: String): String {

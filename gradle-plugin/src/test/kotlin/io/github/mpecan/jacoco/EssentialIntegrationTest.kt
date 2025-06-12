@@ -22,7 +22,7 @@ class EssentialIntegrationTest : PluginFixtureTest() {
         assertEquals(TaskOutcome.SUCCESS, result.task(":listProjectCoverage")?.outcome)
         
         // Verify JSON output format
-        assertTrue(result.output.contains("\"projectName\""), "Should produce JSON output")
+        assertTrue(result.output.contains(" \"projectName\":"), "Should produce JSON output")
     }
     
     @Test

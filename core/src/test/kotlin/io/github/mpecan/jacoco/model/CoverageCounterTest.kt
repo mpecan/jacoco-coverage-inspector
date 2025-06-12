@@ -1,9 +1,6 @@
 package io.github.mpecan.jacoco.model
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class CoverageCounterTest {
     
@@ -62,5 +59,65 @@ class CoverageCounterTest {
         assertTrue(counter.isCoveredRatioAtMost(0.8))
         assertTrue(counter.isCoveredRatioAtMost(0.81))
         assertFalse(counter.isCoveredRatioAtMost(0.79))
+    }
+    
+    @Test
+    fun `should aggregate counters of same type`() {
+        val counter1 = CoverageCounter(CoverageType.LINE, missed = 20, covered = 80)
+        val counter2 = CoverageCounter(CoverageType.LINE, missed = 30, covered = 70)
+        val counter3 = CoverageCounter(CoverageType.LINE, missed = 10, covered = 40)
+        
+        val aggregated = CoverageCounter.aggregate(listOf(counter1, counter2, counter3))
+        
+        assertEquals(CoverageType.LINE, aggregated.type)
+        assertEquals(60, aggregated.missed) // 20 + 30 + 10
+        assertEquals(190, aggregated.covered) // 80 + 70 + 40
+        assertEquals(250, aggregated.total) // 60 + 190
+        assertEquals(0.76, aggregated.ratio, 0.001) // 190 / 250
+        assertEquals(76.0, aggregated.percentage, 0.001)
+    }
+    
+    @Test
+    fun `should aggregate single counter`() {
+        val counter = CoverageCounter(CoverageType.BRANCH, missed = 5, covered = 15)
+        val aggregated = CoverageCounter.aggregate(listOf(counter))
+        
+        assertEquals(counter.type, aggregated.type)
+        assertEquals(counter.missed, aggregated.missed)
+        assertEquals(counter.covered, aggregated.covered)
+        assertEquals(counter.total, aggregated.total)
+        assertEquals(counter.ratio, aggregated.ratio)
+    }
+    
+    @Test
+    fun `should handle aggregation of all zero counters`() {
+        val counter1 = CoverageCounter(CoverageType.METHOD, missed = 0, covered = 0)
+        val counter2 = CoverageCounter(CoverageType.METHOD, missed = 0, covered = 0)
+        
+        val aggregated = CoverageCounter.aggregate(listOf(counter1, counter2))
+        
+        assertEquals(CoverageType.METHOD, aggregated.type)
+        assertEquals(0, aggregated.missed)
+        assertEquals(0, aggregated.covered)
+        assertEquals(0, aggregated.total)
+        assertEquals(0.0, aggregated.ratio)
+        assertEquals(0.0, aggregated.percentage)
+    }
+    
+    @Test
+    fun `should throw exception when aggregating empty list`() {
+        assertFailsWith<IllegalArgumentException> {
+            CoverageCounter.aggregate(emptyList())
+        }
+    }
+    
+    @Test
+    fun `should throw exception when aggregating different types`() {
+        val counter1 = CoverageCounter(CoverageType.LINE, missed = 10, covered = 20)
+        val counter2 = CoverageCounter(CoverageType.BRANCH, missed = 5, covered = 10)
+        
+        assertFailsWith<IllegalArgumentException> {
+            CoverageCounter.aggregate(listOf(counter1, counter2))
+        }
     }
 }

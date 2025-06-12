@@ -219,7 +219,6 @@ abstract class BaseInspectorTask : DefaultTask() {
 
             // Perform task-specific execution
             generateOutput(coverageData, filter)
-
         } else {
             listOf<ClassCoverageData>()
         }
@@ -235,7 +234,7 @@ abstract class BaseInspectorTask : DefaultTask() {
     /**
      * Generate the output data for this specific task type
      */
-    fun generateOutput(coverageData: ProjectCoverageData, filter: CoverageFilter): Any {
+    open fun generateOutput(coverageData: ProjectCoverageData, filter: CoverageFilter): Any {
         return OutputGenerator().generateFileOutput(coverageData, filter)
     }
 
@@ -291,10 +290,14 @@ abstract class BaseInspectorTask : DefaultTask() {
         }
 
         // Apply pattern defaults
-        if (!includePatterns.isPresent && extension.includePatterns.isNotEmpty()) {
+        if ((!includePatterns.isPresent || includePatterns.get()
+                .isEmpty()) && extension.includePatterns.isNotEmpty()
+        ) {
             includePatterns.set(extension.includePatterns)
         }
-        if (!excludePatterns.isPresent && extension.excludePatterns.isNotEmpty()) {
+        if ((!excludePatterns.isPresent || excludePatterns.get()
+                .isEmpty()) && extension.excludePatterns.isNotEmpty()
+        ) {
             excludePatterns.set(extension.excludePatterns)
         }
     }

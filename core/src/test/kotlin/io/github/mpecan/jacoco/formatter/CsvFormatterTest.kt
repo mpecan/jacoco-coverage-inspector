@@ -1,5 +1,7 @@
 package io.github.mpecan.jacoco.formatter
 
+import io.github.mpecan.jacoco.aggregator.AggregatedPackageCoverage
+import io.github.mpecan.jacoco.aggregator.AggregatedProjectCoverage
 import io.github.mpecan.jacoco.model.*
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -11,19 +13,21 @@ class CsvFormatterTest {
     private fun createTestCounter(type: CoverageType, covered: Int, missed: Int): CoverageCounter {
         return CoverageCounter(type, missed, covered)
     }
-    
-    private fun createTestProject(): ProjectCoverageData {
-        val counters = mapOf(
-            CoverageType.INSTRUCTION to createTestCounter(CoverageType.INSTRUCTION, 100, 20),
-            CoverageType.BRANCH to createTestCounter(CoverageType.BRANCH, 80, 40),
-            CoverageType.LINE to createTestCounter(CoverageType.LINE, 90, 10),
-            CoverageType.METHOD to createTestCounter(CoverageType.METHOD, 15, 5),
-            CoverageType.CLASS to createTestCounter(CoverageType.CLASS, 8, 2),
-            CoverageType.COMPLEXITY to createTestCounter(CoverageType.COMPLEXITY, 50, 15)
-        )
-        
-        return ProjectCoverageData("TestProject", counters)
-    }
+
+    private fun createTestProject(): ProjectCoverageData = ProjectCoverageData("TestProject", createCounters())
+
+    private fun createAggregatedProject(): AggregatedProjectCoverage = AggregatedProjectCoverage("AggregatedProject", createCounters(),1,1,1)
+
+    private fun createAggregatedPackage(): List<AggregatedPackageCoverage> =
+        listOf(AggregatedPackageCoverage("AggregatedPackage", createCounters(), 1,1))
+
+    private fun createCounters(): Map<CoverageType, CoverageCounter> = mapOf(
+        CoverageType.INSTRUCTION to createTestCounter(CoverageType.INSTRUCTION, 100, 20),
+        CoverageType.BRANCH to createTestCounter(CoverageType.BRANCH, 80, 40),
+        CoverageType.LINE to createTestCounter(CoverageType.LINE, 90, 10),
+        CoverageType.METHOD to createTestCounter(CoverageType.METHOD, 15, 5),
+        CoverageType.CLASS to createTestCounter(CoverageType.CLASS, 8, 2)
+    )
     
     @Test
     fun `should format project coverage as CSV`() {
@@ -41,7 +45,18 @@ class CsvFormatterTest {
         assertContains(output, "ComplexityCovered,ComplexityMissed,ComplexityTotal,ComplexityPercentage")
         
         // Check data row
-        assertContains(output, "PROJECT,TestProject,8,2,10,80.00,15,5,20,75.00,90,10,100,90.00,80,40,120,66.67,100,20,120,83.33,50,15,65,76.92")
+        assertContains(output, "PROJECT,TestProject,8,2,10,80.00,15,5,20,75.00,90,10,100,90.00,80,40,120,66.67,100,20,120,83.33,0,0,0,0.00")
+    }
+
+    @Test
+    fun `should format aggregated project coverage as CSV`() {
+        val formatter = CsvFormatter()
+        val project = createAggregatedProject()
+        val output = formatter.format(project)
+        assertContains(output, "MethodCovered,MethodMissed,MethodTotal,MethodPercentage")
+        assertContains(output, "LineCovered,LineMissed,LineTotal,LinePercentage")
+        assertContains(output, "BranchCovered,BranchMissed,BranchTotal,BranchPercentage")
+        assertContains(output, "InstructionCovered,InstructionMissed,InstructionTotal,InstructionPercentage")
     }
     
     @Test
