@@ -1,7 +1,6 @@
 package io.github.mpecan.jacoco.tasks
 
 import io.github.mpecan.jacoco.JacocoInspectorExtension
-import io.github.mpecan.jacoco.formatter.*
 import io.github.mpecan.jacoco.model.*
 import io.github.mpecan.jacoco.parser.JacocoXmlParser
 import org.gradle.api.DefaultTask
@@ -198,7 +197,25 @@ abstract class BaseInspectorTask : DefaultTask() {
             val coverageData = parser.parseReport(reportFile)
 
             // Build the filter
-            val filter = buildCoverageFilter()
+            val filter = CoverageFilterBuilder().buildFilter(
+                minCoverage = minCoverage.orNull,
+                coverageType = coverageType.orNull,
+                minClassCoverage = minClassCoverage.orNull,
+                minMethodCoverage = minMethodCoverage.orNull,
+                minLineCoverage = minLineCoverage.orNull,
+                minBranchCoverage = minBranchCoverage.orNull,
+                minInstructionCoverage = minInstructionCoverage.orNull,
+                minComplexityCoverage = minComplexityCoverage.orNull,
+                maxClassCoverage = maxClassCoverage.orNull,
+                maxMethodCoverage = maxMethodCoverage.orNull,
+                maxLineCoverage = maxLineCoverage.orNull,
+                maxBranchCoverage = maxBranchCoverage.orNull,
+                maxInstructionCoverage = maxInstructionCoverage.orNull,
+                maxComplexityCoverage = maxComplexityCoverage.orNull,
+                includePatterns = includePatterns.getOrElse(emptyList()),
+                excludePatterns = excludePatterns.getOrElse(emptyList()),
+                packageFilter = packageFilter.orNull
+            )
 
             // Perform task-specific execution
             generateOutput(coverageData, filter)
@@ -208,17 +225,19 @@ abstract class BaseInspectorTask : DefaultTask() {
         }
 
         // Format and print the output
-        val formatter = createFormatter()
+        val formatter = FormatterFactory().createFormatter(
+            format = format.get(),
+            colorOutput = colorOutput.get()
+        )
         println(formatter.format(output))
     }
 
     /**
      * Generate the output data for this specific task type
      */
-    protected abstract fun generateOutput(
-        coverageData: ProjectCoverageData,
-        filter: CoverageFilter
-    ): Any
+    fun generateOutput(coverageData: ProjectCoverageData, filter: CoverageFilter): Any {
+        return OutputGenerator().generateFileOutput(coverageData, filter)
+    }
 
     /**
      * Apply defaults from the extension
@@ -280,55 +299,4 @@ abstract class BaseInspectorTask : DefaultTask() {
         }
     }
 
-    private fun buildCoverageFilter(): CoverageFilter {
-        val minThresholds = mutableMapOf<CoverageType, Double>()
-        val maxThresholds = mutableMapOf<CoverageType, Double>()
-
-        // Handle generic minCoverage option - apply to specified coverage type or default to LINE
-        minCoverage.orNull?.let { coverage ->
-            val targetType = coverageType.getOrElse(CoverageType.LINE)
-            minThresholds[targetType] = coverage / 100.0
-        }
-
-        // Build min thresholds from specific options (these override the generic minCoverage)
-        minClassCoverage.orNull?.let { minThresholds[CoverageType.CLASS] = it / 100.0 }
-        minMethodCoverage.orNull?.let { minThresholds[CoverageType.METHOD] = it / 100.0 }
-        minLineCoverage.orNull?.let { minThresholds[CoverageType.LINE] = it / 100.0 }
-        minBranchCoverage.orNull?.let { minThresholds[CoverageType.BRANCH] = it / 100.0 }
-        minInstructionCoverage.orNull?.let { minThresholds[CoverageType.INSTRUCTION] = it / 100.0 }
-        minComplexityCoverage.orNull?.let { minThresholds[CoverageType.COMPLEXITY] = it / 100.0 }
-
-        // Build max thresholds
-        maxClassCoverage.orNull?.let { maxThresholds[CoverageType.CLASS] = it / 100.0 }
-        maxMethodCoverage.orNull?.let { maxThresholds[CoverageType.METHOD] = it / 100.0 }
-        maxLineCoverage.orNull?.let { maxThresholds[CoverageType.LINE] = it / 100.0 }
-        maxBranchCoverage.orNull?.let { maxThresholds[CoverageType.BRANCH] = it / 100.0 }
-        maxInstructionCoverage.orNull?.let { maxThresholds[CoverageType.INSTRUCTION] = it / 100.0 }
-        maxComplexityCoverage.orNull?.let { maxThresholds[CoverageType.COMPLEXITY] = it / 100.0 }
-
-        // Handle package filter - add it to include patterns
-        val includePatternsList = includePatterns.getOrElse(emptyList()).toMutableList()
-        packageFilter.orNull?.let { pattern ->
-            includePatternsList.add("$pattern*")
-        }
-
-        return CoverageFilter(
-            minThresholds = minThresholds,
-            maxThresholds = maxThresholds,
-            includePatterns = includePatternsList,
-            excludePatterns = excludePatterns.getOrElse(emptyList())
-        )
-    }
-
-    private fun createFormatter(): CoverageFormatter {
-        return when (format.get()) {
-            OutputFormat.TABLE -> TableFormatter(
-                colorOutput = colorOutput.get(),
-                outputFormat = format.get()
-            )
-            OutputFormat.JSON -> JsonFormatter()
-            OutputFormat.CSV -> CsvFormatter()
-            OutputFormat.MARKDOWN -> MarkdownFormatter()
-        }
-    }
 }

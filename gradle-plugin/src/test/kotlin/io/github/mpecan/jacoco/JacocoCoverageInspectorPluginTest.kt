@@ -6,7 +6,6 @@ import io.github.mpecan.jacoco.tasks.ListProjectCoverageTask
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.testing.jacoco.plugins.JacocoPlugin
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.test.*

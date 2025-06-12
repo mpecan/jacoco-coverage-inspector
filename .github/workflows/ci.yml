@@ -33,10 +33,3 @@ jobs:
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: true
-    
-    - name: Upload coverage to GitHub
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: coverage-report
-        path: build/reports/jacoco/test/html/
