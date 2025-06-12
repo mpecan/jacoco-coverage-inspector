@@ -23,7 +23,9 @@ jobs:
       uses: gradle/actions/setup-gradle@v3
     
     - name: Run tests with coverage
-      run: ./gradlew test jacocoTestReport jacocoTestCoverageVerification
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: ./gradlew build sonar
     
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
