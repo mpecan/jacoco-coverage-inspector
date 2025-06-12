@@ -17,7 +17,6 @@ abstract class PluginFixtureTest {
         .withProjectDir(testProjectDir)
         .withArguments(*arguments)
         .withPluginClasspath()
-        .forwardOutput()  // Shows output in test console
         .run {
             if (expectFailure) buildAndFail() else build()
         }

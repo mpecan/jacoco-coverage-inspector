@@ -10,11 +10,11 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.options.Option
-import java.io.File
 
 /**
  * Base class for all coverage inspection tasks
  */
+@Suppress("unused")
 abstract class BaseInspectorTask : DefaultTask() {
 
     /**
@@ -321,7 +321,6 @@ abstract class BaseInspectorTask : DefaultTask() {
     }
 
     private fun createFormatter(): CoverageFormatter {
-        logger.debug("Formatting output with ${format.get()} format")
         return when (format.get()) {
             OutputFormat.TABLE -> TableFormatter(
                 colorOutput = colorOutput.get(),
