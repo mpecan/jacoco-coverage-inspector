@@ -23,7 +23,7 @@ jobs:
       uses: gradle/actions/setup-gradle@v3
     
     - name: Run tests with coverage
-      run: ./gradlew test jacocoTestReport jacocoTestCoverageVerification
+      run: ./gradlew build sonar
     
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
