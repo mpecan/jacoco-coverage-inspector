@@ -3,6 +3,7 @@ plugins {
     kotlin("jvm") version "2.1.20"
     `java-gradle-plugin`
     `maven-publish`
+    jacoco
     id("io.github.gmazzo.gradle.testkit.jacoco") version "1.0.3"
 }
 
@@ -30,15 +31,47 @@ tasks.test {
 }
 
 jacoco {
-    toolVersion = "0.8.10"
+    toolVersion = "0.8.12"
 }
 
 tasks.jacocoTestReport {
+    dependsOn(tasks.test)
     reports {
         xml.required = true
         csv.required = true
         html.required = true
     }
+}
+
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = "0.80".toBigDecimal()
+            }
+        }
+
+        rule {
+            element = "CLASS"
+            excludes = listOf(
+                "*.Main*",
+                "*.MainKt*",
+                "*.Companion",
+                "*\$\$serializer*",
+                "*.*inlined*",
+                "*.generateOutput.*inlined.*"
+            )
+            limit {
+                counter = "LINE"
+                value = "COVEREDRATIO"
+                minimum = "0.80".toBigDecimal()
+            }
+        }
+    }
+}
+
+tasks.check {
+    dependsOn(tasks.jacocoTestCoverageVerification)
 }
 
 kotlin {
