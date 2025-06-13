@@ -36,13 +36,8 @@ sonar {
         property("sonar.organization", "mpecan")
         property("sonar.host.url", "https://sonarcloud.io")
         
-        // Include Maven plugin source code and coverage
-        property("sonar.sources", "gradle-plugin/src/main,core/src/main,maven-plugin/src/main")
-        property("sonar.tests", "gradle-plugin/src/test,core/src/test,maven-plugin/src/test")
-        
         // Include both Gradle and Maven coverage reports
         property("sonar.coverage.jacoco.xmlReportPaths", 
-            "build/reports/jacoco/test/jacocoTestReport.xml," +
             "core/build/reports/jacoco/test/jacocoTestReport.xml," +
             "gradle-plugin/build/reports/jacoco/test/jacocoTestReport.xml," +
             "maven-plugin/target/site/jacoco/jacoco.xml")
@@ -53,7 +48,23 @@ sonar {
             "core/build/classes," +
             "maven-plugin/target/classes")
         
-        // Specify language for Maven plugin Kotlin files
-        property("sonar.kotlin.file.suffixes", ".kt")
+        // Configure modules to avoid duplicate indexing
+        property("sonar.modules", "core,gradle-plugin,maven-plugin")
+        
+        // Core module configuration
+        property("core.sonar.sources", "src/main")
+        property("core.sonar.tests", "src/test")
+        property("core.sonar.projectBaseDir", "core")
+        
+        // Gradle plugin module configuration  
+        property("gradle-plugin.sonar.sources", "src/main")
+        property("gradle-plugin.sonar.tests", "src/test")
+        property("gradle-plugin.sonar.projectBaseDir", "gradle-plugin")
+        
+        // Maven plugin module configuration
+        property("maven-plugin.sonar.sources", "src/main")
+        property("maven-plugin.sonar.tests", "src/test")
+        property("maven-plugin.sonar.projectBaseDir", "maven-plugin")
+        property("maven-plugin.sonar.language", "kotlin")
     }
 }
