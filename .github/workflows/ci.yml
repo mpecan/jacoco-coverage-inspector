@@ -30,9 +30,7 @@ jobs:
         cache: 'maven'
     
     - name: Run Gradle tests with coverage
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: ./gradlew build sonar
+      run: ./gradlew build
     
     - name: Publish core module to local Maven repository
       run: ./gradlew :core:publishToMavenLocal
@@ -40,6 +38,11 @@ jobs:
     - name: Run Maven plugin tests with coverage
       working-directory: maven-plugin
       run: ./mvnw clean verify
+    
+    - name: Run SonarQube analysis
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: ./gradlew sonar
     
     - name: Upload Gradle coverage reports to Codecov
       uses: codecov/codecov-action@v4

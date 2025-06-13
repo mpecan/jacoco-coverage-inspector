@@ -35,5 +35,25 @@ sonar {
         property("sonar.projectKey", "mpecan_jacoco-coverage-inspector")
         property("sonar.organization", "mpecan")
         property("sonar.host.url", "https://sonarcloud.io")
+        
+        // Include Maven plugin source code and coverage
+        property("sonar.sources", "gradle-plugin/src/main,core/src/main,maven-plugin/src/main")
+        property("sonar.tests", "gradle-plugin/src/test,core/src/test,maven-plugin/src/test")
+        
+        // Include both Gradle and Maven coverage reports
+        property("sonar.coverage.jacoco.xmlReportPaths", 
+            "build/reports/jacoco/test/jacocoTestReport.xml," +
+            "core/build/reports/jacoco/test/jacocoTestReport.xml," +
+            "gradle-plugin/build/reports/jacoco/test/jacocoTestReport.xml," +
+            "maven-plugin/target/site/jacoco/jacoco.xml")
+        
+        // Include compiled classes from both build systems
+        property("sonar.java.binaries", 
+            "gradle-plugin/build/classes," +
+            "core/build/classes," +
+            "maven-plugin/target/classes")
+        
+        // Specify language for Maven plugin Kotlin files
+        property("sonar.kotlin.file.suffixes", ".kt")
     }
 }
