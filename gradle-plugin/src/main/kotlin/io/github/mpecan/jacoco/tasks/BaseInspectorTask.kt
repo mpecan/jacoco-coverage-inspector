@@ -197,24 +197,32 @@ abstract class BaseInspectorTask : DefaultTask() {
             val coverageData = parser.parseReport(reportFile)
 
             // Build the filter
-            val filter = CoverageFilterBuilder().buildFilter(
-                minCoverage = minCoverage.orNull,
-                coverageType = coverageType.orNull,
-                minClassCoverage = minClassCoverage.orNull,
-                minMethodCoverage = minMethodCoverage.orNull,
-                minLineCoverage = minLineCoverage.orNull,
-                minBranchCoverage = minBranchCoverage.orNull,
-                minInstructionCoverage = minInstructionCoverage.orNull,
-                minComplexityCoverage = minComplexityCoverage.orNull,
-                maxClassCoverage = maxClassCoverage.orNull,
-                maxMethodCoverage = maxMethodCoverage.orNull,
-                maxLineCoverage = maxLineCoverage.orNull,
-                maxBranchCoverage = maxBranchCoverage.orNull,
-                maxInstructionCoverage = maxInstructionCoverage.orNull,
-                maxComplexityCoverage = maxComplexityCoverage.orNull,
+            val thresholds = CoverageThresholds(
+                minClass = minClassCoverage.orNull,
+                maxClass = maxClassCoverage.orNull,
+                minMethod = minMethodCoverage.orNull,
+                maxMethod = maxMethodCoverage.orNull,
+                minLine = minLineCoverage.orNull,
+                maxLine = maxLineCoverage.orNull,
+                minBranch = minBranchCoverage.orNull,
+                maxBranch = maxBranchCoverage.orNull,
+                minInstruction = minInstructionCoverage.orNull,
+                maxInstruction = maxInstructionCoverage.orNull,
+                minComplexity = minComplexityCoverage.orNull,
+                maxComplexity = maxComplexityCoverage.orNull
+            )
+            
+            val filterPatterns = FilterPatterns(
                 includePatterns = includePatterns.getOrElse(emptyList()),
                 excludePatterns = excludePatterns.getOrElse(emptyList()),
                 packageFilter = packageFilter.orNull
+            )
+            
+            val filter = CoverageFilterBuilder().buildFilter(
+                minCoverage = minCoverage.orNull,
+                coverageType = coverageType.orNull,
+                thresholds = thresholds,
+                filterPatterns = filterPatterns
             )
 
             // Perform task-specific execution
@@ -242,62 +250,56 @@ abstract class BaseInspectorTask : DefaultTask() {
      * Apply defaults from the extension
      */
     fun applyDefaults(extension: JacocoInspectorExtension) {
+        applyBasicDefaults(extension)
+        applyThresholdDefaults(extension)
+        applyPatternDefaults(extension)
+    }
+    
+    private fun applyBasicDefaults(extension: JacocoInspectorExtension) {
         if (!format.isPresent) {
             format.set(extension.defaultFormat)
         }
         if (!colorOutput.isPresent) {
             colorOutput.set(extension.colorOutput)
         }
-
-        // Apply threshold defaults
-        if (!minClassCoverage.isPresent && extension.minClassCoverage != null) {
-            minClassCoverage.set(extension.minClassCoverage)
+    }
+    
+    private fun applyThresholdDefaults(extension: JacocoInspectorExtension) {
+        applyMinThresholdDefaults(extension)
+        applyMaxThresholdDefaults(extension)
+    }
+    
+    private fun applyMinThresholdDefaults(extension: JacocoInspectorExtension) {
+        applyPropertyDefault(minClassCoverage, extension.minClassCoverage)
+        applyPropertyDefault(minMethodCoverage, extension.minMethodCoverage)
+        applyPropertyDefault(minLineCoverage, extension.minLineCoverage)
+        applyPropertyDefault(minBranchCoverage, extension.minBranchCoverage)
+        applyPropertyDefault(minInstructionCoverage, extension.minInstructionCoverage)
+        applyPropertyDefault(minComplexityCoverage, extension.minComplexityCoverage)
+    }
+    
+    private fun applyMaxThresholdDefaults(extension: JacocoInspectorExtension) {
+        applyPropertyDefault(maxClassCoverage, extension.maxClassCoverage)
+        applyPropertyDefault(maxMethodCoverage, extension.maxMethodCoverage)
+        applyPropertyDefault(maxLineCoverage, extension.maxLineCoverage)
+        applyPropertyDefault(maxBranchCoverage, extension.maxBranchCoverage)
+        applyPropertyDefault(maxInstructionCoverage, extension.maxInstructionCoverage)
+        applyPropertyDefault(maxComplexityCoverage, extension.maxComplexityCoverage)
+    }
+    
+    private fun applyPropertyDefault(property: Property<Double>, extensionValue: Double?) {
+        if (!property.isPresent && extensionValue != null) {
+            property.set(extensionValue)
         }
-        if (!minMethodCoverage.isPresent && extension.minMethodCoverage != null) {
-            minMethodCoverage.set(extension.minMethodCoverage)
-        }
-        if (!minLineCoverage.isPresent && extension.minLineCoverage != null) {
-            minLineCoverage.set(extension.minLineCoverage)
-        }
-        if (!minBranchCoverage.isPresent && extension.minBranchCoverage != null) {
-            minBranchCoverage.set(extension.minBranchCoverage)
-        }
-        if (!minInstructionCoverage.isPresent && extension.minInstructionCoverage != null) {
-            minInstructionCoverage.set(extension.minInstructionCoverage)
-        }
-        if (!minComplexityCoverage.isPresent && extension.minComplexityCoverage != null) {
-            minComplexityCoverage.set(extension.minComplexityCoverage)
-        }
-
-        // Apply max threshold defaults
-        if (!maxClassCoverage.isPresent && extension.maxClassCoverage != null) {
-            maxClassCoverage.set(extension.maxClassCoverage)
-        }
-        if (!maxMethodCoverage.isPresent && extension.maxMethodCoverage != null) {
-            maxMethodCoverage.set(extension.maxMethodCoverage)
-        }
-        if (!maxLineCoverage.isPresent && extension.maxLineCoverage != null) {
-            maxLineCoverage.set(extension.maxLineCoverage)
-        }
-        if (!maxBranchCoverage.isPresent && extension.maxBranchCoverage != null) {
-            maxBranchCoverage.set(extension.maxBranchCoverage)
-        }
-        if (!maxInstructionCoverage.isPresent && extension.maxInstructionCoverage != null) {
-            maxInstructionCoverage.set(extension.maxInstructionCoverage)
-        }
-        if (!maxComplexityCoverage.isPresent && extension.maxComplexityCoverage != null) {
-            maxComplexityCoverage.set(extension.maxComplexityCoverage)
-        }
-
-        // Apply pattern defaults
-        if ((!includePatterns.isPresent || includePatterns.get()
-                .isEmpty()) && extension.includePatterns.isNotEmpty()
-        ) {
+    }
+    
+    private fun applyPatternDefaults(extension: JacocoInspectorExtension) {
+        if ((!includePatterns.isPresent || includePatterns.get().isEmpty()) && 
+            extension.includePatterns.isNotEmpty()) {
             includePatterns.set(extension.includePatterns)
         }
-        if ((!excludePatterns.isPresent || excludePatterns.get()
-                .isEmpty()) && extension.excludePatterns.isNotEmpty()
-        ) {
+        if ((!excludePatterns.isPresent || excludePatterns.get().isEmpty()) && 
+            extension.excludePatterns.isNotEmpty()) {
             excludePatterns.set(extension.excludePatterns)
         }
     }

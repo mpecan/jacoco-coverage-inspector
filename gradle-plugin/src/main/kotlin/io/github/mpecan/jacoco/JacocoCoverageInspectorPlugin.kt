@@ -3,10 +3,7 @@ package io.github.mpecan.jacoco
 import io.github.mpecan.jacoco.tasks.*
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.plugins.JavaPlugin
-import org.gradle.testing.jacoco.plugins.JacocoPlugin
 import org.gradle.testing.jacoco.tasks.JacocoReport
-import java.io.File
 
 class JacocoCoverageInspectorPlugin : Plugin<Project> {
     override fun apply(project: Project) {

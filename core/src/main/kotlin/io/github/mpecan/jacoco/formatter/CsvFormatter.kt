@@ -58,7 +58,7 @@ class CsvFormatter : CoverageFormatter {
             return ""
         }
         
-        return when (val first = list.first()) {
+        return when (list.first()) {
             is PackageCoverageData -> formatPackageList(list.filterIsInstance<PackageCoverageData>())
             is AggregatedPackageCoverage -> formatAggregatedPackageList(list.filterIsInstance<AggregatedPackageCoverage>())
             is ClassCoverageData -> formatClassList(list.filterIsInstance<ClassCoverageData>())

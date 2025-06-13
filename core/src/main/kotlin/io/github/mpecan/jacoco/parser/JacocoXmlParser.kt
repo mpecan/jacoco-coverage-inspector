@@ -3,7 +3,6 @@ package io.github.mpecan.jacoco.parser
 import io.github.mpecan.jacoco.model.*
 import org.w3c.dom.Document
 import org.w3c.dom.Element
-import org.w3c.dom.NodeList
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 
@@ -13,16 +12,12 @@ import javax.xml.parsers.DocumentBuilderFactory
 class JacocoXmlParser {
     
     fun parseReport(reportFile: File): ProjectCoverageData {
-        if (!reportFile.exists()) {
-            throw IllegalArgumentException("JaCoCo report file does not exist: ${reportFile.absolutePath}")
-        }
+        require(reportFile.exists()) { "JaCoCo report file does not exist: ${reportFile.absolutePath}" }
         
         val document = parseXmlFile(reportFile)
         val reportElement = document.documentElement
         
-        if (reportElement.tagName != "report") {
-            throw IllegalArgumentException("Invalid JaCoCo report: root element should be 'report'")
-        }
+        require(reportElement.tagName == "report") { "Invalid JaCoCo report: root element should be 'report'" }
         
         // Parse session info to get project name
         val projectName = extractProjectName(reportElement)
