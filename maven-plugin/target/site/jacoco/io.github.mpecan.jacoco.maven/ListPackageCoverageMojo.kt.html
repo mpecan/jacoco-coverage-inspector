@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ListPackageCoverageMojo.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">JaCoCo Coverage Inspector Maven Plugin</a> &gt; <a href="index.source.html" class="el_package">io.github.mpecan.jacoco.maven</a> &gt; <span class="el_source">ListPackageCoverageMojo.kt</span></div><h1>ListPackageCoverageMojo.kt</h1><pre class="source lang-java linenums">package io.github.mpecan.jacoco.maven
+
+import io.github.mpecan.jacoco.model.*
+import org.apache.maven.plugins.annotations.LifecyclePhase
+import org.apache.maven.plugins.annotations.Mojo
+
+/**
+ * Lists package-level aggregated coverage data
+ */
+<span class="fc" id="L10">@Mojo(name = &quot;list-packages&quot;, defaultPhase = LifecyclePhase.VERIFY)</span>
+<span class="fc" id="L11">class ListPackageCoverageMojo : JacocoCoverageInspectorMojo() {</span>
+
+    override fun generateOutput(coverageData: ProjectCoverageData, filter: CoverageFilter): Any {
+<span class="fc" id="L14">        val filteredPackages = mutableListOf&lt;PackageCoverageData&gt;()</span>
+        
+        // Apply filter to each package
+<span class="fc bfc" id="L17" title="All 2 branches covered.">        for (pkg in coverageData.packages) {</span>
+<span class="pc bpc" id="L18" title="1 of 2 branches missed.">            if (filter.matches(pkg)) {</span>
+<span class="fc" id="L19">                filteredPackages.add(pkg)</span>
+            }
+        }
+        
+        // Sort by package name for consistent output
+<span class="fc" id="L24">        return filteredPackages.sortedBy { it.packageName }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

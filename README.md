@@ -1,6 +1,6 @@
-# JaCoCo Coverage Inspector Gradle Plugin
+# JaCoCo Coverage Inspector
 
-A powerful Gradle plugin that provides comprehensive command-line inspection and parsing capabilities for JaCoCo coverage reports. Designed for both human readability and machine parsing, making it ideal for CI/CD pipelines, automated analysis tools, and development workflows.
+A comprehensive suite of build plugins that provides command-line inspection and parsing capabilities for JaCoCo coverage reports. Available for both **Gradle** and **Maven**, designed for human readability and machine parsing, making it ideal for CI/CD pipelines, automated analysis tools, and development workflows.
 
 ## 🚀 Features
 
@@ -10,12 +10,14 @@ A powerful Gradle plugin that provides comprehensive command-line inspection and
 - 🔍 **Advanced Threshold Filtering**: Find code with coverage above or below specified thresholds
 - 🎨 **Rich Console Output**: Color-coded coverage indicators and emoji support
 - 🔧 **Extensive Configuration**: Extension-based configuration with command-line overrides
-- 🏗️ **Multi-module Support**: Works seamlessly with multi-project Gradle builds
+- 🏗️ **Multi-module Support**: Works seamlessly with multi-project Gradle builds and Maven multi-module projects
 - ⚡ **High Performance**: Efficient XML parsing with kotlinx.serialization
 - 🧪 **Production Ready**: 80%+ test coverage with comprehensive integration tests
+- 🔧 **Dual Build System Support**: Native Gradle plugin and Maven plugin implementations
 
 ## 🏃 Quick Start
 
+### Gradle
 ```bash
 # List overall project coverage
 ./gradlew listProjectCoverage
@@ -33,9 +35,29 @@ A powerful Gradle plugin that provides comprehensive command-line inspection and
 ./gradlew listPackageCoverage --format=markdown
 ```
 
+### Maven
+```bash
+# List overall project coverage
+./mvnw jacoco-inspector:list-project-coverage
+
+# Get JSON output for CI integration
+./mvnw jacoco-inspector:list-project-coverage -Dformat=json
+
+# Find files with low branch coverage
+./mvnw jacoco-inspector:list-file-coverage -DminBranchCoverage=50
+
+# Find well-tested classes but with poor method coverage
+./mvnw jacoco-inspector:list-file-coverage -DminClassCoverage=90 -DmaxMethodCoverage=60
+
+# Generate Markdown report for documentation
+./mvnw jacoco-inspector:list-package-coverage -Dformat=markdown
+```
+
 ## 📦 Installation
 
-### Using the plugins DSL (Gradle 2.1+)
+### Gradle Plugin
+
+#### Using the plugins DSL (Gradle 2.1+)
 
 ```kotlin
 plugins {
@@ -43,7 +65,7 @@ plugins {
 }
 ```
 
-### Using legacy plugin application
+#### Using legacy plugin application
 
 ```kotlin
 buildscript {
@@ -58,7 +80,31 @@ buildscript {
 apply(plugin = "io.github.mpecan.jacoco-inspector")
 ```
 
+### Maven Plugin
+
+Add to your `pom.xml`:
+
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>io.github.mpecan</groupId>
+            <artifactId>jacoco-coverage-inspector-maven-plugin</artifactId>
+            <version>1.0.0</version>
+        </plugin>
+    </plugins>
+</build>
+```
+
+Or use it without modifying your POM:
+
+```bash
+./mvnw io.github.mpecan:jacoco-coverage-inspector-maven-plugin:1.0.0:list-project-coverage
+```
+
 ## 🎯 Available Tasks
+
+### Gradle Tasks
 
 | Task | Description | Usage |
 |------|-------------|-------|
@@ -66,35 +112,71 @@ apply(plugin = "io.github.mpecan.jacoco-inspector")
 | `listPackageCoverage` | Lists coverage for all packages | `./gradlew listPackageCoverage` |
 | `listFileCoverage` | Lists coverage for individual files/classes | `./gradlew listFileCoverage` |
 
+### Maven Goals
+
+| Goal | Description | Usage |
+|------|-------------|-------|
+| `list-project-coverage` | Shows overall project coverage summary | `./mvnw jacoco-inspector:list-project-coverage` |
+| `list-package-coverage` | Lists coverage for all packages | `./mvnw jacoco-inspector:list-package-coverage` |
+| `list-file-coverage` | Lists coverage for individual files/classes | `./mvnw jacoco-inspector:list-file-coverage` |
+
 ## 📄 Output Formats
 
 ### Table (Default)
 Human-readable console output with optional color coding:
+
+**Gradle:**
 ```bash
 ./gradlew listProjectCoverage --format=table --color
 ```
 
+**Maven:**
+```bash
+./mvnw jacoco-inspector:list-project-coverage -Dformat=table -DcolorOutput=true
+```
+
 ### JSON
 Structured data perfect for CI/CD integration:
+
+**Gradle:**
 ```bash
 ./gradlew listProjectCoverage --format=json
 ```
 
+**Maven:**
+```bash
+./mvnw jacoco-inspector:list-project-coverage -Dformat=json
+```
+
 ### CSV
 Spreadsheet-compatible format for data analysis:
+
+**Gradle:**
 ```bash
 ./gradlew listProjectCoverage --format=csv
 ```
 
+**Maven:**
+```bash
+./mvnw jacoco-inspector:list-project-coverage -Dformat=csv
+```
+
 ### Markdown
 Documentation-ready format with emoji indicators:
+
+**Gradle:**
 ```bash
 ./gradlew listProjectCoverage --format=markdown
 ```
 
+**Maven:**
+```bash
+./mvnw jacoco-inspector:list-project-coverage -Dformat=markdown
+```
+
 ## 🔧 Configuration
 
-### Extension Configuration
+### Gradle Extension Configuration
 
 ```kotlin
 jacocoInspector {
@@ -122,15 +204,56 @@ jacocoInspector {
 }
 ```
 
+### Maven Plugin Configuration
+
+```xml
+<plugin>
+    <groupId>io.github.mpecan</groupId>
+    <artifactId>jacoco-coverage-inspector-maven-plugin</artifactId>
+    <version>1.0.0</version>
+    <configuration>
+        <!-- Default format for all goals -->
+        <format>json</format>
+        
+        <!-- Enable/disable color output -->
+        <colorOutput>true</colorOutput>
+        
+        <!-- Global coverage thresholds -->
+        <minLineCoverage>80.0</minLineCoverage>
+        <minBranchCoverage>70.0</minBranchCoverage>
+        <minMethodCoverage>75.0</minMethodCoverage>
+        <minClassCoverage>90.0</minClassCoverage>
+        <minInstructionCoverage>85.0</minInstructionCoverage>
+        <minComplexityCoverage>80.0</minComplexityCoverage>
+        
+        <!-- Maximum thresholds -->
+        <maxLineCoverage>100.0</maxLineCoverage>
+        <maxBranchCoverage>100.0</maxBranchCoverage>
+        
+        <!-- Pattern-based filtering -->
+        <includePatterns>
+            <includePattern>com.mycompany.*</includePattern>
+            <includePattern>*.service.*</includePattern>
+        </includePatterns>
+        <excludePatterns>
+            <excludePattern>*.test.*</excludePattern>
+            <excludePattern>*.mock.*</excludePattern>
+        </excludePatterns>
+    </configuration>
+</plugin>
+```
+
 ### Command Line Options
+
+#### Gradle Command Line Options
 
 All tasks support extensive command-line customization:
 
-#### Output Control
+**Output Control:**
 - `--format=<table|json|csv|markdown>` - Output format
 - `--color` / `--no-color` - Enable/disable color output
 
-#### Coverage Filtering
+**Coverage Filtering:**
 - `--minCoverage=<percentage>` - Generic minimum coverage threshold
 - `--coverageType=<INSTRUCTION|BRANCH|LINE|COMPLEXITY|METHOD|CLASS>` - Coverage type for generic threshold
 - `--minLineCoverage=<percentage>` - Minimum line coverage
@@ -140,7 +263,7 @@ All tasks support extensive command-line customization:
 - `--minInstructionCoverage=<percentage>` - Minimum instruction coverage
 - `--minComplexityCoverage=<percentage>` - Minimum complexity coverage
 
-#### Maximum Thresholds
+**Maximum Thresholds:**
 - `--maxLineCoverage=<percentage>` - Maximum line coverage
 - `--maxBranchCoverage=<percentage>` - Maximum branch coverage
 - `--maxMethodCoverage=<percentage>` - Maximum method coverage
@@ -148,10 +271,39 @@ All tasks support extensive command-line customization:
 - `--maxInstructionCoverage=<percentage>` - Maximum instruction coverage
 - `--maxComplexityCoverage=<percentage>` - Maximum complexity coverage
 
-#### Pattern Filtering
+**Pattern Filtering:**
 - `--packageFilter=<pattern>` - Filter by package name pattern
 - `--includePatterns=<pattern1,pattern2>` - Include only matching patterns
 - `--excludePatterns=<pattern1,pattern2>` - Exclude matching patterns
+
+#### Maven Command Line Properties
+
+Maven goals support configuration via system properties:
+
+**Output Control:**
+- `-Dformat=<table|json|csv|markdown>` - Output format
+- `-DcolorOutput=<true|false>` - Enable/disable color output
+
+**Coverage Filtering:**
+- `-DminCoverage=<percentage>` - Generic minimum coverage threshold
+- `-DcoverageType=<INSTRUCTION|BRANCH|LINE|COMPLEXITY|METHOD|CLASS>` - Coverage type for generic threshold
+- `-DminLineCoverage=<percentage>` - Minimum line coverage
+- `-DminBranchCoverage=<percentage>` - Minimum branch coverage
+- `-DminMethodCoverage=<percentage>` - Minimum method coverage
+- `-DminClassCoverage=<percentage>` - Minimum class coverage
+- `-DminInstructionCoverage=<percentage>` - Minimum instruction coverage
+- `-DminComplexityCoverage=<percentage>` - Minimum complexity coverage
+
+**Maximum Thresholds:**
+- `-DmaxLineCoverage=<percentage>` - Maximum line coverage
+- `-DmaxBranchCoverage=<percentage>` - Maximum branch coverage
+- `-DmaxMethodCoverage=<percentage>` - Maximum method coverage
+- `-DmaxClassCoverage=<percentage>` - Maximum class coverage
+- `-DmaxInstructionCoverage=<percentage>` - Maximum instruction coverage
+- `-DmaxComplexityCoverage=<percentage>` - Maximum complexity coverage
+
+**Pattern Filtering:**
+- `-DpackageFilter=<pattern>` - Filter by package name pattern
 
 ## 💡 Usage Examples
 
@@ -310,6 +462,10 @@ cd jacoco-coverage-inspector
 │   ├── src/main/kotlin/
 │   │   └── tasks/                 # Gradle task implementations
 │   └── src/test/kotlin/           # Integration tests with test fixtures
+├── maven-plugin/                   # Maven plugin implementation
+│   ├── src/main/kotlin/
+│   │   └── io/github/mpecan/jacoco/maven/  # Maven Mojo implementations
+│   └── src/test/kotlin/           # Comprehensive unit tests
 └── README.md                      # This file
 ```
 

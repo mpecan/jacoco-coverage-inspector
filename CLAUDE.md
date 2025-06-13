@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Gradle plugin that provides command-line inspection and parsing capabilities for JaCoCo coverage reports. It allows users and LLM agents to easily query coverage data at project, package, and file levels with both human-readable and machine-parsable outputs.
+This is a multi-module project that provides command-line inspection and parsing capabilities for JaCoCo coverage reports. It includes both **Gradle plugin** and **Maven plugin** implementations, sharing a common core library. It allows users and LLM agents to easily query coverage data at project, package, and file levels with both human-readable and machine-parsable outputs.
 
 ## Development Commands
 
-### Build and Test
+### Gradle Build and Test
 ```bash
-# Build the project
+# Build the entire project (all modules)
 ./gradlew build
 
 # Run all tests
@@ -24,6 +24,27 @@ This is a Gradle plugin that provides command-line inspection and parsing capabi
 
 # Clean and rebuild
 ./gradlew clean build
+
+# Publish core module to local Maven repository (required for Maven plugin development)
+./gradlew :core:publishToMavenLocal
+```
+
+### Maven Plugin Build and Test
+```bash
+# Build and test Maven plugin (requires core module in local Maven repository)
+cd maven-plugin
+./mvnw clean verify
+cd ..
+
+# Run Maven plugin tests only
+cd maven-plugin
+./mvnw test
+cd ..
+
+# Clean Maven plugin
+cd maven-plugin
+./mvnw clean
+cd ..
 ```
 
 ### Development Workflow
@@ -33,37 +54,70 @@ This is a Gradle plugin that provides command-line inspection and parsing capabi
 
 # Run continuous build during development
 ./gradlew build --continuous
+
+# Full CI workflow test
+./gradlew build
+./gradlew :core:publishToMavenLocal
+cd maven-plugin && ./mvnw clean verify && cd ..
 ```
 
 ## Architecture Notes
 
 ### Current State
-- Basic Kotlin JVM project using Gradle 8.10.2
-- Kotlin 2.1.20 with JVM target 21
+- Multi-module Kotlin JVM project using Gradle 8.10.2
+- Kotlin 2.1.20 with JVM target 17 (aligned across both plugins)
 - JUnit platform for testing
+- Dual build system support: Gradle + Maven
 
-### Plugin Architecture
+### Project Architecture
 
-1. **Core Components**:
+1. **Core Module** (`core/`):
+   - Shared library containing parsing, formatting, and data models
+   - Published to Maven repository for use by both plugins
+   - 80%+ test coverage requirement
+
+2. **Gradle Plugin Module** (`gradle-plugin/`):
+   - Gradle-specific task implementations
+   - Extension-based configuration (`jacocoInspector`)
+   - Integration tests with test fixtures
+
+3. **Maven Plugin Module** (`maven-plugin/`):
+   - Maven Mojo implementations in Kotlin
+   - Parameter-based configuration
+   - 83%+ test coverage achieved
+
+### Key Components
+
+1. **Gradle Plugin**:
    - `JacocoCoverageInspectorPlugin`: Main plugin class that registers tasks
    - `ListProjectCoverageTask`: Shows coverage for all projects
    - `ListFileCoverageTask`: Shows file-level coverage with filtering
    - `ListPackageCoverageTask`: Shows package-level coverage aggregation
 
-2. **Key Features**:
+2. **Maven Plugin**:
+   - `JacocoCoverageInspectorMojo`: Base abstract mojo class
+   - `ListProjectCoverageMojo`: Maven goal for project coverage
+   - `ListFileCoverageMojo`: Maven goal for file-level coverage
+   - `ListPackageCoverageMojo`: Maven goal for package-level coverage
+
+3. **Shared Features**:
    - Multiple output formats: Table (human), JSON, CSV, Markdown
    - Flexible filtering by coverage type and thresholds
-   - Support for multi-project builds
-   - Standalone usage without build file modification
+   - Support for multi-project/multi-module builds
+   - Identical command-line parameter support
 
-3. **Package Structure**:
-   - `io.github.mpecan.jacoco.tasks/`: Coverage inspection tasks
-   - `io.github.mpecan.jacoco.parser/`: JaCoCo XML parsing
-   - `io.github.mpecan.jacoco.formatter/`: Output formatting
-   - `io.github.mpecan.jacoco.model/`: Data models
+4. **Package Structure**:
+   - `io.github.mpecan.jacoco.tasks/`: Coverage inspection tasks (Gradle)
+   - `io.github.mpecan.jacoco.maven/`: Maven Mojo implementations
+   - `io.github.mpecan.jacoco.parser/`: JaCoCo XML parsing (shared)
+   - `io.github.mpecan.jacoco.formatter/`: Output formatting (shared)
+   - `io.github.mpecan.jacoco.model/`: Data models (shared)
 
 ### Key Development Considerations
 - The project uses Foojay resolver for JVM toolchain management
 - Group ID is `io.github.mpecan` - maintain this for consistency
-- Follow Gradle plugin best practices for backwards compatibility
-- Test against multiple Gradle versions when implementing the plugin
+- **Version alignment**: Both plugins use same version (1.0-SNAPSHOT)
+- **Dependency management**: Maven plugin depends on core module from local repository
+- **CI workflow**: Gradle build → core publish → Maven build
+- Follow plugin best practices for backwards compatibility
+- Test coverage requirement: 80% minimum across all modules

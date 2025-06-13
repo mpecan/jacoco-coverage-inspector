@@ -13,25 +13,48 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Set up JDK 21
+    - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
-        java-version: '21'
+        java-version: '17'
         distribution: 'temurin'
     
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
     
-    - name: Run tests with coverage
+    - name: Setup Maven
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: 'maven'
+    
+    - name: Run Gradle tests with coverage
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: ./gradlew build sonar
     
-    - name: Upload coverage reports to Codecov
+    - name: Publish core module to local Maven repository
+      run: ./gradlew :core:publishToMavenLocal
+    
+    - name: Run Maven plugin tests with coverage
+      working-directory: maven-plugin
+      run: ./mvnw clean verify
+    
+    - name: Upload Gradle coverage reports to Codecov
       uses: codecov/codecov-action@v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./build/reports/jacoco/test/jacocoTestReport.xml
-        flags: unittests
-        name: codecov-umbrella
+        files: ./build/reports/jacoco/test/jacocoTestReport.xml,./core/build/reports/jacoco/test/jacocoTestReport.xml,./gradle-plugin/build/reports/jacoco/test/jacocoTestReport.xml
+        flags: gradle-tests
+        name: gradle-coverage
+        fail_ci_if_error: true
+    
+    - name: Upload Maven coverage reports to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./maven-plugin/target/site/jacoco/jacoco.xml
+        flags: maven-tests
+        name: maven-coverage
         fail_ci_if_error: true
