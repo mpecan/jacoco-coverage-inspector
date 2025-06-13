@@ -47,7 +47,7 @@ jobs:
       run: ./gradlew sonar
     
     - name: Upload Gradle coverage reports to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: ./build/reports/jacoco/test/jacocoTestReport.xml,./core/build/reports/jacoco/test/jacocoTestReport.xml,./gradle-plugin/build/reports/jacoco/test/jacocoTestReport.xml
@@ -56,7 +56,7 @@ jobs:
         fail_ci_if_error: true
     
     - name: Upload Maven coverage reports to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: ./maven-plugin/target/site/jacoco/jacoco.xml
