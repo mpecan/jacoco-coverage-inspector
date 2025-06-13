@@ -204,7 +204,7 @@ jacocoInspector {
 ### Standalone Usage (without modifying build.gradle)
 ```bash
 # Download init script
-curl -O https://raw.githubusercontent.com/mpecan/gradle-plugin-jacoco-agent/main/init-scripts/jacoco-inspector-init.gradle
+curl -O https://raw.githubusercontent.com/mpecan/jacoco-coverage-inspector/main/init-scripts/jacoco-inspector-init.gradle
 
 # Run with init script
 ./gradlew -I jacoco-inspector-init.gradle listProjectCoverage
