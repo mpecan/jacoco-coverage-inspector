@@ -62,8 +62,44 @@ This is a Gradle plugin that provides command-line inspection and parsing capabi
    - `io.github.mpecan.jacoco.formatter/`: Output formatting
    - `io.github.mpecan.jacoco.model/`: Data models
 
+4. **Git strategy**:
+  - This project requires the use of conventional commits
+  - All commits should use the correct format and so should PRs
+  - PRs are squashed
+
 ### Key Development Considerations
 - The project uses Foojay resolver for JVM toolchain management
 - Group ID is `io.github.mpecan` - maintain this for consistency
 - Follow Gradle plugin best practices for backwards compatibility
 - Test against multiple Gradle versions when implementing the plugin
+
+## Code Quality Guidelines
+
+### Testing Requirements
+- **ALWAYS run tests before moving on**: 
+  - For single test additions: Execute `./gradlew :module:test --tests "TestClassName"` to run only the specific test class in the specific module
+  - For broader changes: Execute `./gradlew test` to run the full test suite
+- Write comprehensive tests for all new functionality
+- Aim for high test coverage while focusing on meaningful test scenarios
+- Test both happy path and error conditions
+
+### Code Organization
+- **File size limit**: Keep files under 500 lines maximum for maintainability
+- Break large files into smaller, focused components when approaching this limit
+- Each class should have a single, well-defined responsibility
+
+### Design Principles
+- **Follow SOLID principles** when appropriate:
+  - Single Responsibility: Each class should have one reason to change
+  - Open/Closed: Open for extension, closed for modification
+  - Liskov Substitution: Subtypes should be substitutable for base types
+  - Interface Segregation: Prefer specific interfaces over large general ones
+  - Dependency Inversion: Depend on abstractions, not concretions
+
+### Testability Guidelines
+- **Abstract external dependencies**: File I/O, network calls, system dependencies
+- **Use constructor injection** when it improves testability:
+  - Provide default implementations for production use
+  - Allow dependency override for testing scenarios
+  - Only apply when it genuinely improves code design
+- Design for testability from the start rather than retrofitting tests
