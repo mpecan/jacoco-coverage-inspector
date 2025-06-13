@@ -1,29 +1,26 @@
 plugins {
     id("java")
-    kotlin("jvm") version "2.1.20"
-    kotlin("plugin.serialization") version "2.1.20"
+    kotlin("jvm")
+    kotlin("plugin.serialization")
     jacoco
 }
 
 group = "io.github.mpecan"
 version = "1.0-SNAPSHOT"
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     implementation(gradleApi())
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${rootProject.extra["kotlinxSerializationVersion"]}")
 
     testImplementation(kotlin("test"))
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
-    testImplementation("io.mockk:mockk:1.13.8")
+    testImplementation("org.junit.jupiter:junit-jupiter:${rootProject.extra["junitVersion"]}")
+    testImplementation("io.mockk:mockk:${rootProject.extra["mockkVersion"]}")
     testImplementation(gradleTestKit())
 }
 
 tasks.test {
+    finalizedBy(tasks.jacocoTestReport)
     useJUnitPlatform()
 }
 
@@ -33,11 +30,10 @@ kotlin {
 }
 
 jacoco {
-    toolVersion = "0.8.12"
+    toolVersion = rootProject.extra["jacocoVersion"] as String
 }
 
 tasks.jacocoTestReport {
-    dependsOn(tasks.test)
     reports {
         xml.required = true
         csv.required = true

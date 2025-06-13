@@ -49,7 +49,7 @@ class MarkdownFormatter : CoverageFormatter {
             return "*No items match the specified filters.*\n"
         }
         
-        return when (val first = list.first()) {
+        return when (list.first()) {
             is PackageCoverageData -> formatPackageList(list.filterIsInstance<PackageCoverageData>())
             is ClassCoverageData -> formatClassList(list.filterIsInstance<ClassCoverageData>())
             else -> list.joinToString("\n") { "- ${escapeMarkdown(it.toString())}" }

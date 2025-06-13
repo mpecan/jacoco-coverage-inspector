@@ -60,9 +60,10 @@ class TableFormatter(
         sb.appendLine()
         
         // Summary statistics
-        sb.appendLine(String.format(java.util.Locale.US, "%-20s: %d", "Total Packages", project.packageCount))
-        sb.appendLine(String.format(java.util.Locale.US, "%-20s: %d", "Total Classes", project.classCount))
-        sb.appendLine(String.format(java.util.Locale.US, "%-20s: %d", "Total Methods", project.methodCount))
+        val summaryFormat = "%-20s: %d"
+        sb.appendLine(String.format(java.util.Locale.US, summaryFormat, "Total Packages", project.packageCount))
+        sb.appendLine(String.format(java.util.Locale.US, summaryFormat, "Total Classes", project.classCount))
+        sb.appendLine(String.format(java.util.Locale.US, summaryFormat, "Total Methods", project.methodCount))
         sb.appendLine()
         
         // Format coverage counters
@@ -76,7 +77,7 @@ class TableFormatter(
             return "\nNo items match the specified filters.\n"
         }
         
-        return when (val first = list.first()) {
+        return when (list.first()) {
             is PackageCoverageData -> formatPackageList(list.filterIsInstance<PackageCoverageData>())
             is AggregatedPackageCoverage -> formatAggregatedPackageList(list.filterIsInstance<AggregatedPackageCoverage>())
             is ClassCoverageData -> formatClassList(list.filterIsInstance<ClassCoverageData>())

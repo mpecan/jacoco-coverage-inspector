@@ -3,9 +3,9 @@ package io.github.mpecan.jacoco.formatter
 import java.util.Locale
 
 /**
- * Interface for formatting coverage data into different output formats
+ * Functional interface for formatting coverage data into different output formats
  */
-interface CoverageFormatter {
+fun interface CoverageFormatter {
     
     /**
      * Formats the given coverage data into a string representation

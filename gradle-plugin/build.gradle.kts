@@ -1,18 +1,14 @@
 plugins {
     id("java")
-    kotlin("jvm") version "2.1.20"
+    kotlin("jvm")
     `java-gradle-plugin`
     `maven-publish`
     jacoco
-    id("io.github.gmazzo.gradle.testkit.jacoco") version "1.0.3"
+    id("io.github.gmazzo.gradle.testkit.jacoco")
 }
 
 group = "io.github.mpecan"
 version = "1.0-SNAPSHOT"
-
-repositories {
-    mavenCentral()
-}
 
 dependencies {
     implementation(project(":core"))
@@ -20,10 +16,10 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
 
     testImplementation(kotlin("test"))
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
-    testImplementation("io.mockk:mockk:1.13.8")
+    testImplementation("org.junit.jupiter:junit-jupiter:${rootProject.extra["junitVersion"]}")
+    testImplementation("io.mockk:mockk:${rootProject.extra["mockkVersion"]}")
     testImplementation(gradleTestKit())
-    testImplementation("org.assertj:assertj-core:3.25.1")
+    testImplementation("org.assertj:assertj-core:${rootProject.extra["assertjVersion"]}")
     testImplementation(kotlin("reflect"))
 }
 
@@ -34,7 +30,7 @@ tasks.test {
 }
 
 jacoco {
-    toolVersion = "0.8.12"
+    toolVersion = rootProject.extra["jacocoVersion"] as String
 }
 
 tasks.jacocoTestReport {

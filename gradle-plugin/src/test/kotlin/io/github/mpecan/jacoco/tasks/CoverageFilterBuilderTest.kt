@@ -40,10 +40,11 @@ class CoverageFilterBuilderTest {
     
     @Test
     fun `specific coverage thresholds override generic minCoverage`() {
+        val thresholds = CoverageThresholds(minLine = 90.0)
         val filter = builder.buildFilter(
             minCoverage = 80.0,
             coverageType = CoverageType.LINE,
-            minLineCoverage = 90.0
+            thresholds = thresholds
         )
         
         // Specific minLineCoverage should override generic minCoverage
@@ -53,14 +54,15 @@ class CoverageFilterBuilderTest {
     
     @Test
     fun `builds all min thresholds correctly`() {
-        val filter = builder.buildFilter(
-            minClassCoverage = 100.0,
-            minMethodCoverage = 90.0,
-            minLineCoverage = 80.0,
-            minBranchCoverage = 70.0,
-            minInstructionCoverage = 85.0,
-            minComplexityCoverage = 75.0
+        val thresholds = CoverageThresholds(
+            minClass = 100.0,
+            minMethod = 90.0,
+            minLine = 80.0,
+            minBranch = 70.0,
+            minInstruction = 85.0,
+            minComplexity = 75.0
         )
+        val filter = builder.buildFilter(thresholds = thresholds)
         
         assertEquals(1.0, filter.minThresholds[CoverageType.CLASS])
         assertEquals(0.9, filter.minThresholds[CoverageType.METHOD])
@@ -73,14 +75,15 @@ class CoverageFilterBuilderTest {
     
     @Test
     fun `builds all max thresholds correctly`() {
-        val filter = builder.buildFilter(
-            maxClassCoverage = 100.0,
-            maxMethodCoverage = 95.0,
-            maxLineCoverage = 90.0,
-            maxBranchCoverage = 85.0,
-            maxInstructionCoverage = 92.0,
-            maxComplexityCoverage = 88.0
+        val thresholds = CoverageThresholds(
+            maxClass = 100.0,
+            maxMethod = 95.0,
+            maxLine = 90.0,
+            maxBranch = 85.0,
+            maxInstruction = 92.0,
+            maxComplexity = 88.0
         )
+        val filter = builder.buildFilter(thresholds = thresholds)
         
         assertEquals(1.0, filter.maxThresholds[CoverageType.CLASS])
         assertEquals(0.95, filter.maxThresholds[CoverageType.METHOD])
@@ -93,10 +96,11 @@ class CoverageFilterBuilderTest {
     
     @Test
     fun `handles include and exclude patterns`() {
-        val filter = builder.buildFilter(
+        val filterPatterns = FilterPatterns(
             includePatterns = listOf("com.example.*", "com.test.*"),
             excludePatterns = listOf("*.Test*", "*Mock*")
         )
+        val filter = builder.buildFilter(filterPatterns = filterPatterns)
         
         assertEquals(listOf("com.example.*", "com.test.*"), filter.includePatterns)
         assertEquals(listOf("*.Test*", "*Mock*"), filter.excludePatterns)
@@ -104,10 +108,11 @@ class CoverageFilterBuilderTest {
     
     @Test
     fun `package filter is added to include patterns`() {
-        val filter = builder.buildFilter(
+        val filterPatterns = FilterPatterns(
             packageFilter = "com.example",
             includePatterns = listOf("existing.pattern")
         )
+        val filter = builder.buildFilter(filterPatterns = filterPatterns)
         
         assertTrue(filter.includePatterns.contains("existing.pattern"))
         assertTrue(filter.includePatterns.contains("com.example*"))
@@ -116,21 +121,28 @@ class CoverageFilterBuilderTest {
     
     @Test
     fun `package filter works without existing include patterns`() {
-        val filter = builder.buildFilter(packageFilter = "com.test")
+        val filterPatterns = FilterPatterns(packageFilter = "com.test")
+        val filter = builder.buildFilter(filterPatterns = filterPatterns)
         
         assertEquals(listOf("com.test*"), filter.includePatterns)
     }
     
     @Test
     fun `builds complex filter with all options`() {
-        val filter = builder.buildFilter(
-            minCoverage = 50.0,
-            coverageType = CoverageType.INSTRUCTION,
-            minLineCoverage = 80.0,  // Should override generic minCoverage for LINE
-            maxBranchCoverage = 95.0,
+        val thresholds = CoverageThresholds(
+            minLine = 80.0,  // Should override generic minCoverage for LINE
+            maxBranch = 95.0
+        )
+        val filterPatterns = FilterPatterns(
             includePatterns = listOf("com.main.*"),
             excludePatterns = listOf("*Test*"),
             packageFilter = "com.util"
+        )
+        val filter = builder.buildFilter(
+            minCoverage = 50.0,
+            coverageType = CoverageType.INSTRUCTION,
+            thresholds = thresholds,
+            filterPatterns = filterPatterns
         )
         
         // Generic minCoverage applied to INSTRUCTION type
