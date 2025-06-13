@@ -3,6 +3,7 @@ plugins {
     kotlin("jvm")
     kotlin("plugin.serialization")
     jacoco
+    `maven-publish`
 }
 
 group = "io.github.mpecan"
@@ -26,7 +27,7 @@ tasks.test {
 
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(17)
 }
 
 jacoco {
@@ -67,4 +68,50 @@ tasks.jacocoTestCoverageVerification {
 
 tasks.check {
     dependsOn(tasks.jacocoTestCoverageVerification)
+}
+
+publishing {
+    repositories {
+        mavenLocal() // For CI local publishing
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/mpecan/jacoco-coverage-inspector")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+            
+            pom {
+                name.set("JaCoCo Coverage Inspector Core")
+                description.set("Core functionality for parsing and analyzing JaCoCo coverage reports")
+                url.set("https://github.com/mpecan/jacoco-coverage-inspector")
+                
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("https://opensource.org/licenses/MIT")
+                    }
+                }
+                
+                developers {
+                    developer {
+                        id.set("mpecan")
+                        name.set("mpecan")
+                        email.set("mpecan@users.noreply.github.com")
+                    }
+                }
+                
+                scm {
+                    connection.set("scm:git:git://github.com/mpecan/jacoco-coverage-inspector.git")
+                    developerConnection.set("scm:git:ssh://github.com/mpecan/jacoco-coverage-inspector.git")
+                    url.set("https://github.com/mpecan/jacoco-coverage-inspector")
+                }
+            }
+        }
+    }
 }
