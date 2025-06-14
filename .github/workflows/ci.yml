@@ -20,16 +20,10 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
+        cache: 'maven'
     
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
-    
-    - name: Setup Maven
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: 'maven'
     
     - name: Run Gradle tests with coverage
       run: ./gradlew build
