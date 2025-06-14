@@ -144,6 +144,7 @@ jobs:
         gpg --batch --import ~/.signing.key
         rm ~/.signing.key
         ./mvnw --no-transfer-progress --batch-mode deploy \
+          -Dgpg.skip=false \
           -Dossrh.username="$MAVEN_USERNAME" \
           -Dossrh.password="$MAVEN_PASSWORD" \
           -Dgpg.passphrase="$MAVEN_GPG_PASSPHRASE"
