@@ -3,6 +3,8 @@ plugins {
     kotlin("jvm")
     `java-gradle-plugin`
     `maven-publish`
+    `signing`
+    id("com.gradle.plugin-publish") version "1.3.0"
     jacoco
     id("io.github.gmazzo.gradle.testkit.jacoco")
 }
@@ -77,12 +79,16 @@ kotlin {
 }
 
 gradlePlugin {
+    website = "https://github.com/mpecan/jacoco-coverage-inspector"
+    vcsUrl = "https://github.com/mpecan/jacoco-coverage-inspector"
+    
     plugins {
         create("jacocoCoverageInspector") {
             id = "io.github.mpecan.jacoco-inspector"
             implementationClass = "io.github.mpecan.jacoco.JacocoCoverageInspectorPlugin"
             displayName = "JaCoCo Coverage Inspector"
             description = "Inspect and parse JaCoCo coverage reports with human and machine-readable outputs"
+            tags = listOf("jacoco", "coverage", "testing", "reporting")
         }
     }
 }
@@ -120,4 +126,11 @@ publishing {
             }
         }
     }
+}
+
+signing {
+    val signingKey: String? by project
+    val signingPassword: String? by project
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign(publishing.publications["maven"])
 }
