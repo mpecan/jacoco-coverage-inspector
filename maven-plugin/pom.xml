@@ -227,7 +227,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.6.3</version>
+                <version>3.11.2</version>
                 <configuration>
                     <source>17</source>
                 </configuration>
@@ -245,7 +245,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.2.7</version>
                 <configuration>
                     <skip>${gpg.skip}</skip>
                     <gpgArguments>
@@ -267,8 +267,7 @@
             <!-- Nexus staging plugin for Maven Central deployment -->
             <plugin>
                 <groupId>org.sonatype.central</groupId>
-                <artifactId>central-publishing-maven-plugin</artifactId>
-                <version>0.7.0</version>
+                <artifactId>central-publishing-maven-plugin</artifact
                 <extensions>true</extensions>
                 <configuration>
                     <publishingServerId>central</publishingServerId>
