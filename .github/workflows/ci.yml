@@ -124,7 +124,15 @@ jobs:
         ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGINMEMORYKEYPASSWORD }}
         ORG_GRADLE_PROJECT_signingKey: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGINMEMORYKEY }}
       run: ./gradlew :gradle-plugin:signPluginMavenPublication
-    
+
+    - id: install-secret-key
+      name: Install gpg secret key
+      run: |
+        # Install gpg secret key
+        cat <(echo -e "${{ secrets.ORG_GRADLE_PROJECT_SIGNINGINMEMORYKEY }}") | gpg --batch --import
+        # Verify gpg secret key
+        gpg --list-secret-keys --keyid-format LONG
+
     - name: Publish Maven Plugin to Maven Central
       if: steps.version_check.outputs.is_snapshot == 'true'
       working-directory: maven-plugin
@@ -133,9 +141,6 @@ jobs:
         MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
         MAVEN_GPG_PASSPHRASE: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGINMEMORYKEYPASSWORD }}
       run: |
-        echo "${{ secrets.ORG_GRADLE_PROJECT_SIGNINGINMEMORYKEYPASSWORD }}" > ~/.signing.key
-        gpg --batch --import ~/.signing.key
-        rm ~/.signing.key
         ./mvnw --no-transfer-progress --batch-mode deploy \
           -Dgpg.skip=false \
           -Dossrh.username="$MAVEN_USERNAME" \
