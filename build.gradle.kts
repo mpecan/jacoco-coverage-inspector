@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.3.0" apply false
+    kotlin("jvm") version "2.3.10" apply false
     kotlin("plugin.serialization") version "2.3.0" apply false
     id("org.sonarqube") version "6.3.1.5724"
     id("io.github.gmazzo.gradle.testkit.jacoco") version "1.0.5" apply false
