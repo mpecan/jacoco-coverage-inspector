@@ -4,7 +4,7 @@ plugins {
     `java-gradle-plugin`
     `maven-publish`
     `signing`
-    id("com.gradle.plugin-publish") version "1.3.1"
+    id("com.gradle.plugin-publish") version "2.1.1"
     jacoco
     id("io.github.gmazzo.gradle.testkit.jacoco")
 }
