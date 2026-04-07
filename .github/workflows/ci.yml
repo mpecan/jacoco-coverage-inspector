@@ -11,134 +11,167 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: '0'
-    
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: 'maven'
-    
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
-    
-    - name: Run Gradle tests with coverage
-      run: ./gradlew build
-    
-    - name: Publish core module to local Maven repository
-      run: ./gradlew :core:publishToMavenLocal
-    
-    - name: Run Maven plugin tests with coverage
-      working-directory: maven-plugin
-      run: ./mvnw clean verify
-    
-    - name: Run SonarQube analysis
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: ./gradlew sonar
-    
-    - name: Upload Gradle coverage reports to Codecov
-      uses: codecov/codecov-action@v5
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./build/reports/jacoco/test/jacocoTestReport.xml,./core/build/reports/jacoco/test/jacocoTestReport.xml,./gradle-plugin/build/reports/jacoco/test/jacocoTestReport.xml
-        flags: gradle-tests
-        name: gradle-coverage
-        fail_ci_if_error: true
-    
-    - name: Upload Maven coverage reports to Codecov
-      uses: codecov/codecov-action@v5
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./maven-plugin/target/site/jacoco/jacoco.xml
-        flags: maven-tests
-        name: maven-coverage
-        fail_ci_if_error: true
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run Gradle tests with coverage
+        run: ./gradlew build
+
+      - name: Publish core module to local Maven repository
+        run: ./gradlew :core:publishToMavenLocal
+
+      - name: Run Maven plugin tests with coverage
+        working-directory: maven-plugin
+        run: ./mvnw clean verify
+
+      - name: Run SonarQube analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew sonar
+
+      - name: Upload Gradle coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./build/reports/jacoco/test/jacocoTestReport.xml,./core/build/reports/jacoco/test/jacocoTestReport.xml,./gradle-plugin/build/reports/jacoco/test/jacocoTestReport.xml
+          flags: gradle-tests
+          name: gradle-coverage
+          fail_ci_if_error: true
+
+      - name: Upload Maven coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./maven-plugin/target/site/jacoco/jacoco.xml
+          flags: maven-tests
+          name: maven-coverage
+          fail_ci_if_error: true
 
   publish:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
     
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: '0'
-    
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-    
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
-    
-    - name: Setup Maven
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: 'maven'
-    
-    - name: Check if version is SNAPSHOT
-      id: version_check
-      run: |
-        GRADLE_VERSION=$(grep "version = " build.gradle.kts | sed 's/.*"\(.*\)".*/\1/')
-        MAVEN_VERSION=$(grep -m1 "<version>" maven-plugin/pom.xml | sed 's/.*<version>\(.*\)<\/version>.*/\1/')
-        echo "gradle_version=$GRADLE_VERSION" >> $GITHUB_OUTPUT
-        echo "maven_version=$MAVEN_VERSION" >> $GITHUB_OUTPUT
-        if [[ "$GRADLE_VERSION" == *"SNAPSHOT"* ]] && [[ "$MAVEN_VERSION" == *"SNAPSHOT"* ]]; then
-          echo "is_snapshot=true" >> $GITHUB_OUTPUT
-        else
-          echo "is_snapshot=false" >> $GITHUB_OUTPUT
-        fi
-    
-    - name: Configure Maven settings
-      if: steps.version_check.outputs.is_snapshot == 'true'
-      run: |
-        mkdir -p ~/.m2
-        cat > ~/.m2/settings.xml << EOF
-        <settings>
-          <servers>
-            <server>
-              <id>ossrh</id>
-              <username>\${env.MAVEN_USERNAME}</username>
-              <password>\${env.MAVEN_PASSWORD}</password>
-            </server>
-          </servers>
-        </settings>
-        EOF
-    
-    - name: Publish core module to local Maven repository
-      if: steps.version_check.outputs.is_snapshot == 'true'
-      run: ./gradlew :core:publishToMavenLocal
-    
-    - name: Publish Gradle Plugin to Gradle Plugin Portal
-      if: steps.version_check.outputs.is_snapshot == 'true'
-      env:
-        GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
-        GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
-        ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGINMEMORYKEYPASSWORD }}
-        ORG_GRADLE_PROJECT_signingKey: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGINMEMORYKEY }}
-      run: ./gradlew :gradle-plugin:publishPlugins
-    
-    - name: Publish Maven Plugin to Maven Central
-      if: steps.version_check.outputs.is_snapshot == 'true'
-      working-directory: maven-plugin
-      env:
-        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-        MAVEN_GPG_PASSPHRASE: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGINMEMORYKEYPASSWORD }}
-      run: |
-        echo "${{ secrets.ORG_GRADLE_PROJECT_SIGNINGINMEMORYKEYPASSWORD }}" > ~/.signing.key
-        gpg --batch --import ~/.signing.key
-        rm ~/.signing.key
-        ./mvnw --no-transfer-progress --batch-mode deploy \
-          -Dgpg.skip=false \
-          -Dossrh.username="$MAVEN_USERNAME" \
-          -Dossrh.password="$MAVEN_PASSWORD" \
-          -Dgpg.passphrase="$MAVEN_GPG_PASSPHRASE"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Setup Maven
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Check if version is SNAPSHOT
+        id: version_check
+        run: |
+          GRADLE_VERSION=$(grep "version = " build.gradle.kts | sed 's/.*"\(.*\)".*/\1/')
+          MAVEN_VERSION=$(grep -m1 "<version>" maven-plugin/pom.xml | sed 's/.*<version>\(.*\)<\/version>.*/\1/')
+          echo "gradle_version=$GRADLE_VERSION" >> $GITHUB_OUTPUT
+          echo "maven_version=$MAVEN_VERSION" >> $GITHUB_OUTPUT
+          if [[ "$GRADLE_VERSION" == *"SNAPSHOT"* ]] && [[ "$MAVEN_VERSION" == *"SNAPSHOT"* ]]; then
+            echo "is_snapshot=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_snapshot=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Configure Maven settings
+        if: steps.version_check.outputs.is_snapshot == 'true'
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml << EOF
+          <settings>
+            <servers>
+              <server>
+                <id>ossrh</id>
+                <username>\${env.MAVEN_USERNAME}</username>
+                <password>\${env.MAVEN_PASSWORD}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+
+      - name: Publish core module to local Maven repository
+        if: steps.version_check.outputs.is_snapshot == 'true'
+        run: ./gradlew :core:publishToMavenLocal
+
+      - name: Publish Gradle Plugin to Gradle Plugin Portal
+        if: steps.version_check.outputs.is_snapshot == 'true'
+        env:
+          GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
+          GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGINMEMORYKEYPASSWORD }}
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGINMEMORYKEY }}
+        run: ./gradlew :gradle-plugin:signPluginMavenPublication
+
+      - id: install-secret-key
+        name: Install gpg secret key
+        run: |
+          # Install gpg secret key
+          cat <(echo -e "${{ secrets.ORG_GRADLE_PROJECT_SIGNINGINMEMORYKEY }}") | gpg --batch --import
+          # Verify gpg secret key
+          gpg --list-secret-keys --keyid-format LONG
+
+      - name: Create Maven settings.xml
+        if: steps.version_check.outputs.is_snapshot == 'true'
+        run: |
+          mkdir -p ~/.m2
+          cat <<EOF > ~/.m2/settings.xml
+          <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                                        http://maven.apache.org/xsd/settings-1.0.0.xsd">
+            <servers>
+              <server>
+                <id>ossrh</id>
+                <username>${MAVEN_USERNAME}</username>
+                <password>${MAVEN_PASSWORD}</password>
+              </server>
+            </servers>
+          
+            <profiles>
+              <profile>
+                <id>ossrh</id>
+                <activation>
+                  <activeByDefault>true</activeByDefault>
+                </activation>
+                <properties>
+                  <gpg.executable>gpg</gpg.executable>
+                  <gpg.passphrase>${MAVEN_GPG_PASSPHRASE}</gpg.passphrase>
+                </properties>
+              </profile>
+            </profiles>
+          </settings>
+          EOF
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.ORG_GRADLE_PROJECT_SIGNINGINMEMORYKEYPASSWORD }}
+
+      - name: Publish Maven Plugin to Maven Central
+        if: steps.version_check.outputs.is_snapshot == 'true'
+        working-directory: maven-plugin
+        run: |
+          ./mvnw --no-transfer-progress --batch-mode deploy \
+            -Dgpg.skip=false \
